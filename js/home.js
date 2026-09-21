@@ -11,8 +11,8 @@
   /* hero */
   const hero = HM.islands.borabora || isls()[0];
   if (hero) document.getElementById("hero-art").innerHTML = UI.art(hero, { huts: true });
-  const nAct = Object.keys(HM.acts).length, nStay = Object.keys(HM.stays).length;
-  document.getElementById("hero-stats").innerHTML = [[HM.order.length, "Islands"], [nAct, "Activities"], [nStay, "Places to stay"]].map((x) => `<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
+  const nAct = Object.keys(HM.acts).length, nStay = Object.keys(HM.stays).length, nEat = Object.keys(HM.eats).length;
+  document.getElementById("hero-stats").innerHTML = [[HM.order.length, "Islands"], [nAct, "Activities"], [nStay, "Places to stay"]].concat(nEat ? [[nEat, "Restaurants"]] : []).map((x) => `<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
 
   /* combos */
   document.getElementById("combos").innerHTML = HM.COMBOS.map((c) => {
@@ -25,7 +25,7 @@
     const dirty = it.days.some((d) => d.items.length || d.lodging);
     if (dirty && !confirm("This replaces the islands on your itinerary. Days you've filled in will keep their activities only if they still match the island; the rest are cleared. Continue?")) return;
     const old = it.days;
-    it.days = c.days.map((isl, i) => { const o = old[i]; const keep = o && o.island === isl; return { island: isl, lodging: keep ? o.lodging : null, items: keep ? o.items : [], pref: "fast" }; });
+    it.days = c.days.map((isl, i) => { const o = old[i]; const keep = o && o.island === isl; return Object.assign(HM.blankDay(), { island: isl, lodging: keep ? o.lodging : null, items: keep ? o.items : [], meals: keep && o.meals ? o.meals : {} }); });
     S.save(); location.href = "itinerary.html";
   });
 
@@ -112,7 +112,7 @@
         <p class="short">${esc(sentences(isl.short, 2))}</p>
         <div class="unique"><h5>What makes it different</h5><p>${esc(sentences(isl.unique, 1))}</p></div>
         <div class="chips">${top.map((t) => `<span class="chip tag">${esc(t)}</span>`).join("")}</div>
-        <div class="stats">${routeLine(isl)}<span>${isl.activities.length} activities · ${isl.lodging.length} stays</span></div>
+        <div class="stats">${routeLine(isl)}<span>${isl.activities.length} activities · ${isl.lodging.length} stays${isl.eats.length ? " · " + isl.eats.length + " restaurants" : ""}</span></div>
         ${matches}
         <div class="icard-foot"><div class="picks" data-picks="${isl.id}">${picksHtml(mine)}</div>${UI.rate("i:" + isl.id, false)}</div>
       </div></article>`;
@@ -130,5 +130,6 @@
   // whole card is clickable (rating buttons stop propagation in ui.js)
   document.getElementById("grid").addEventListener("click", (e) => { const c = e.target.closest(".icard"); if (c && !e.target.closest("a")) location.href = c.dataset.href; });
   document.getElementById("grid").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.classList.contains("icard")) location.href = e.target.dataset.href; });
+  document.addEventListener("hm:sync", () => { render(); });
   render();
 })();

@@ -28,5 +28,6 @@
     app.innerHTML = html;
   }
   document.addEventListener("hm:rating", () => setTimeout(render, 180));
+  document.addEventListener("hm:sync", render);
   render();
 })();

@@ -136,8 +136,9 @@
     const el = document.getElementById("site-header"); if (!el) return;
     const link = (href, key, label, extra) => `<a href="${href}" ${active === key ? 'aria-current="page"' : ""}>${label}${extra || ""}</a>`;
     el.innerHTML = `<div class="wrap bar"><a class="brand" href="index.html" aria-label="Tiare and Tide home"><svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#0c6e73"/><circle cx="26" cy="14" r="5" fill="#f2b84b"/><path d="M4 26q4-4 8 0t8 0 8 0 8 0v10H4z" fill="#f7ecd8"/><path d="M4 22q4-4 8 0t8 0 8 0 8 0" stroke="#7fd6cf" stroke-width="2" fill="none"/></svg><span>Tiare <em>&amp;</em> Tide</span></a>
-      <nav aria-label="Main">${link("index.html", "home", "Islands")}${link("shortlist.html", "shortlist", "Shortlist", ' <span class="pill" id="nav-picks" hidden></span>')}${link("itinerary.html", "itinerary", "Itinerary", ' <span class="pill money" id="nav-total" hidden></span>')}</nav></div>`;
+      <nav aria-label="Main">${link("index.html", "home", "Islands")}${link("shortlist.html", "shortlist", "Shortlist", ' <span class="pill" id="nav-picks" hidden></span>')}${link("itinerary.html", "itinerary", "Itinerary", ' <span class="pill money" id="nav-total" hidden></span>')}<button type="button" id="sync-pill" class="sync-pill" data-state="local" hidden></button></nav></div>`;
     UI.refreshNav();
+    if (HM.sync) HM.sync.render();
   };
   UI.footer = function () {
     const el = document.getElementById("site-footer"); if (!el) return;
@@ -197,12 +198,13 @@
   UI.stayCard = function (s, o) {
     o = o || {}; const lvl = HM.stayLevel(s.ppn), isl = HM.getIsland(s.island);
     const meals = s.meals ? HM.mealList(s.meals).join(", ") : "";
-    return `<article class="act stay${cardCls("s", s.id)}" data-id="${esc(s.id)}">
-      <div class="act-top"><div class="badges"><span class="tier stayt">${esc(s.type)}</span>${UI.placedBadge("s", s.id)}</div>${o.island ? `<a class="where" href="island.html?i=${s.island}">${UI.icons.pin}${esc(isl.name)}</a>` : ""}</div>
+    const bad = HM.stayUnavailable(s);
+    return `<article class="act stay${cardCls("s", s.id, bad ? " unavail" : "")}" data-id="${esc(s.id)}">
+      <div class="act-top"><div class="badges"><span class="tier stayt">${esc(s.type)}</span>${bad ? '<span class="season out unavail-badge">Likely unavailable on your dates</span>' : ""}${UI.placedBadge("s", s.id)}</div>${o.island ? `<a class="where" href="island.html?i=${s.island}">${UI.icons.pin}${esc(isl.name)}</a>` : ""}</div>
       <h3>${esc(s.name)}</h3>
       ${s.where ? `<p class="loc">${UI.icons.pin}${esc(s.where)}</p>` : ""}
       <p class="desc">${esc(s.desc)}</p>
-      ${s.note ? `<p class="warn-note">${esc(s.note)}</p>` : ""}
+      ${s.note ? `<p class="warn-note${bad ? " bad" : ""}">${esc(s.note)}</p>` : ""}
       <div class="chips">${UI.tagChips(s.tags, HM.STAY_TAGS)}</div>
       <dl class="metrics">
         <div><dt>Nightly rate</dt><dd><span class="price l${lvl}">${"$".repeat(lvl)}</span> <small>≈ ${HM.money(s.ppn)} for two</small></dd></div>
@@ -277,7 +279,7 @@
     const s = HM.getStay(id); if (!s) return { ok: false, msg: "Stay not found" };
     let n = 0;
     dayIdxs.forEach((i) => { const d = S.state.itin.days[i]; if (d && (!d.island || d.island === s.island)) { d.island = s.island; d.lodging = id; n++; } });
-    persist(); return n ? { ok: true, msg: `${s.name} set for ${n} night${n > 1 ? "s" : ""}` } : { ok: false, msg: "No matching days" };
+    persist(); return n ? { ok: true, msg: `${s.name} set for ${n} night${n > 1 ? "s" : ""}` + (HM.stayUnavailable(s) ? " · heads up: it looks unavailable on your dates (see its note)" : "") } : { ok: false, msg: "No matching days" };
   };
   A.ensureDays = (n) => { const it = S.state.itin; while (it.days.length < n) it.days.push(HM.blankDay()); };
 

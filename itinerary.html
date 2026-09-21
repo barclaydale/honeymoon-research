@@ -7,7 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/itinerary.css">
 </head>
 <body data-page="itinerary">
 <header id="site-header" class="site-header"></header>
@@ -15,12 +17,12 @@
 <main class="wrap">
   <div class="section-head" style="margin-top:28px">
     <div><p class="eyebrow">Day by day</p><h2>Your honeymoon itinerary</h2>
-      <p>Drag activities and places to stay from the left onto a day (or tap <b>+</b>). Choose each day's island and the travel between islands appears automatically, with door-to-door times and costs. Everything is priced for two.</p></div>
+      <p>Drag activities, places to stay and restaurants from the left onto a day (or tap <b>+</b>). Choose each day's island and the travel between islands appears automatically, with door-to-door times and costs. The plan assumes you eat hotel-included meals at the hotel; drop restaurants onto breakfast, lunch or dinner to plan the rest, and any meal left open is counted at the allowance below. Everything is priced for two.</p></div>
     <div class="chips no-print"><button class="btn" id="print" type="button"></button><button class="btn ghost" id="reset" type="button">Reset itinerary</button></div>
   </div>
   <div class="settings" id="settings"></div>
   <div class="planner">
-    <aside class="pool" id="pool" aria-label="Activities and stays to drag"></aside>
+    <aside class="pool" id="pool" aria-label="Activities, stays and restaurants to drag"></aside>
     <section aria-label="Days"><div class="days" id="days"></div></section>
   </div>
 </main>

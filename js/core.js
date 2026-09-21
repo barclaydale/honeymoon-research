@@ -87,6 +87,8 @@
   HM.getAct = (id) => HM.acts[id];
   HM.getStay = (id) => HM.stays[id];
   HM.getEat = (id) => HM.eats[id];
+  // stays whose research note says they can't be booked / aren't open on the trip dates
+  HM.stayUnavailable = (s) => /not bookable|unlikely to be available|do not plan around|reported closed/i.test((s && s.note) || "");
   HM.eatLevel = (pp) => (pp <= 20 ? 1 : pp <= 50 ? 2 : pp <= 100 ? 3 : 4);
   HM.mealList = (str) => str.split("").map((k) => HM.MEAL_WORD[k]).filter(Boolean);
   HM.actMins = (a) => Math.round(a.dur * 60 + a.tr * 2);   // activity + travel to and from
@@ -95,7 +97,7 @@
      [from, to, mode, in-vehicle minutes, USD per person one-way, note]
      Costs/times are planning estimates (Air Tahiti / Aremiti / Terevau / Tuatea, 2025-26). */
   HM.EDGES = [
-    ["tahiti", "moorea", "ferry", 35, 14, "Aremiti or Terevau fast ferry, Papeete → Vaiare (about 30–45 min, many sailings daily)"],
+    ["tahiti", "moorea", "ferry", 35, 14, "Aremiti or Vaearai fast ferry, Papeete → Vaiare (about 30–45 min; Terevau stopped operating in 2026, so book crossings ahead)"],
     ["tahiti", "moorea", "air", 10, 60, "Air Tahiti hop, about 7 min in the air"],
     ["tahiti", "huahine", "air", 40, 145, "Air Tahiti, several flights daily"],
     ["tahiti", "raiatea", "air", 45, 150, "Air Tahiti, several flights daily"],
@@ -161,24 +163,31 @@
     { id: "barefoot", name: "Barefoot & Budget-savvy", blurb: "Pensions, local food, and Maupiti's quiet lagoon.", days: [].concat(rep("tahiti", 1), rep("moorea", 4), rep("huahine", 4), rep("maupiti", 4), rep("borabora", 2), rep("tahiti", 1)) }
   ];
 
-  /* ---------- persistent store ---------- */
+  /* ---------- persistent store ----------
+     Ratings and days carry timestamps (rT / day.t / itin.mt / itin.dt) so two people's edits can be merged
+     item-by-item (see js/merge.js). Timestamps are assigned centrally in S.save() by diffing against the last snapshot. */
   const KEY = "tiare-tide.honeymoon.v1";
-  const blankDay = () => ({ island: null, lodging: null, items: [], pref: "fast", meals: {} });
+  const blankDay = () => ({ island: null, lodging: null, items: [], pref: "fast", meals: {}, t: 0 });
   const defaults = () => ({
-    v: 2, ratings: {},
-    itin: { days: Array.from({ length: HM.DEFAULT_DAYS }, blankDay), start: HM.DEFAULT_START, hub: true, extras: 0, allow: { b: 25, l: 45, d: 90 } }
+    v: 3, ratings: {}, rT: {},
+    itin: { days: Array.from({ length: HM.DEFAULT_DAYS }, blankDay), start: HM.DEFAULT_START, hub: true, extras: 0, allow: { b: 25, l: 45, d: 90 }, mt: 0, dt: 0 }
   });
-  const S = (HM.store = { state: defaults() });
+  const S = (HM.store = { state: defaults(), snap: null });
+  const dayKey = (d) => JSON.stringify([d.island, d.lodging, d.items, d.pref, d.meals]);
+  const metaKey = (it) => JSON.stringify([it.start, it.hub, it.extras, it.allow]);
+  const makeSnap = () => { const st = S.state; return { ratings: Object.assign({}, st.ratings), days: st.itin.days.map(dayKey), len: st.itin.days.length, meta: metaKey(st.itin) }; };
+  S.rebuildSnap = () => (S.snap = makeSnap());
+
   S.load = function () {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const p = JSON.parse(raw), d = defaults();
-        S.state = { v: 2, ratings: p.ratings || d.ratings, itin: Object.assign(d.itin, p.itin || {}) };
+        S.state = { v: 3, ratings: p.ratings || d.ratings, rT: p.rT || {}, itin: Object.assign(d.itin, p.itin || {}) };
         const it = S.state.itin;
         it.allow = Object.assign({ b: 25, l: 45, d: 90 }, it.allow || {});
         it.days = (it.days || []).map((x) => Object.assign(blankDay(), x));
-        if (!p.v || p.v < 2) {                       // migrate the earlier 12-day / no-dates version
+        if (!p.v || p.v < 2) {                       // migrate the earliest 12-day / no-dates version
           while (it.days.length < HM.DEFAULT_DAYS) it.days.push(blankDay());
           if (!it.start) it.start = HM.DEFAULT_START;
           if (p.itin && p.itin.meals) it.extras = Number(p.itin.meals) || 0;
@@ -187,8 +196,24 @@
         if (!it.days.length) it.days = d.itin.days;
       }
     } catch (e) {}
+    S.rebuildSnap();
   };
-  S.save = function () { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) {} };
+  S.persistLocal = function () { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) {} };
+  // stamp whatever changed since the last snapshot, so the merge knows which side is newer for each item
+  S.stamp = function () {
+    const st = S.state, it = st.itin, snap = S.snap || makeSnap(), now = Date.now();
+    new Set([...Object.keys(st.ratings), ...Object.keys(snap.ratings)]).forEach((k) => { if ((st.ratings[k] || "") !== (snap.ratings[k] || "")) st.rT[k] = now; });
+    it.days.forEach((d, i) => { if (dayKey(d) !== snap.days[i]) d.t = now; });
+    if (it.days.length !== snap.len) it.dt = now;
+    if (metaKey(it) !== snap.meta) it.mt = now;
+    S.snap = makeSnap();
+  };
+  S.save = function () { S.stamp(); S.persistLocal(); if (S.onSave) S.onSave(); };
+  // replace local state with a merged remote state (no stamping: it is not a local edit)
+  S.adopt = function (state) {
+    const st = window.TTMerge ? window.TTMerge.normalize(state) : state;
+    S.state = { v: 3, ratings: st.ratings, rT: st.rT, itin: st.itin }; S.rebuildSnap(); S.persistLocal();
+  };
   S.getRating = (key) => S.state.ratings[key] || "";
   S.rate = function (key, val) {  // toggles: same value again clears it
     if (S.state.ratings[key] === val) delete S.state.ratings[key]; else S.state.ratings[key] = val;
