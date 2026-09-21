@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiare &amp; Tide · French Polynesia Honeymoon Planner</title>
+<meta name="description" content="Compare every French Polynesia island for your honeymoon: activities, lodging, travel times and a drag-and-drop itinerary with a running cost.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="home">
+<header id="site-header" class="site-header"></header>
+
+<section class="hero">
+  <div class="hero-art" id="hero-art"></div>
+  <div class="wrap hero-inner">
+    <p class="eyebrow">French Polynesia · Honeymoon research</p>
+    <h1>Find the islands that feel like <em>the two of you</em>.</h1>
+    <p class="lede">Twelve islands, hundreds of things to do, and honest advice on what's touristy, what's wild, and what's worth the boat ride. Love, like or pass on everything, then drag your favorites into a day-by-day itinerary with a running budget.</p>
+    <div class="hero-stats" id="hero-stats"></div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="section-head">
+    <div><p class="eyebrow">Start with a shape</p><h2>Popular honeymoon outlines</h2><p>Not sure how to link the islands? Load an outline into your itinerary, then swap islands and add activities to make it yours.</p></div>
+  </div>
+  <div class="combos" id="combos"></div>
+
+  <div class="section-head">
+    <div><p class="eyebrow">Compare the islands</p><h2>Narrow down what you're after</h2><p>Combine filters: pick an activity like <em>manta rays</em> or <em>hiking</em> and only islands that offer it stay in view.</p></div>
+  </div>
+  <section class="finder" aria-label="Filters">
+    <div class="f-top">
+      <label class="search">__SEARCH__<input id="q" type="search" placeholder="Search islands or activities: manta, vanilla, Teahupo'o…" autocomplete="off"></label>
+      <div class="seg" id="f-mine" role="group" aria-label="My picks"></div>
+    </div>
+    <div class="f-groups" id="f-groups"></div>
+    <div class="fg wide">
+      <h4><span>What do you want to do?</span><span class="seg" id="f-mode" role="group" aria-label="Match mode"><button type="button" data-mode="all" aria-pressed="true">Match all</button><button type="button" data-mode="any" aria-pressed="false">Match any</button></span></h4>
+      <div class="chips" id="f-tags"></div>
+    </div>
+    <div class="f-actions"><span id="result-count"></span><button class="linkbtn" id="clear" type="button">Clear all filters</button></div>
+  </section>
+
+  <div class="grid islands" id="grid" aria-live="polite"></div>
+</main>
+
+<footer id="site-footer"></footer>
+<script src="js/boot.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>

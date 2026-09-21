@@ -1,0 +1,83 @@
+/* Itinerary page additions: meals in day cards, dining pool, meal-aware settings and trip bar. Loaded after styles.css. */
+
+/* ---------- trip bar ---------- */
+.trip-bar .wrap { gap: 10px 26px; }
+.break { gap: 6px; align-items: stretch; }
+.break span { background: rgba(255, 255, 255, 0.09); border-radius: 11px; padding: 4px 11px 5px; min-width: 0; }
+.break span small { font-size: 10px; letter-spacing: 0.06em; white-space: nowrap; }
+.break span b { font-size: 14.5px; }
+.trip-route small { opacity: 0.75; }
+
+/* ---------- settings ---------- */
+.settings { flex-direction: column; align-items: stretch; gap: 10px; padding-bottom: 12px; }
+.settings .set-line { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.settings .set-t { font-weight: 600; color: var(--ink); }
+.settings input.sm-num { width: 68px; padding: 5px 8px; }
+.settings .range { font-weight: 600; color: var(--lagoon-dd); background: var(--lagoon-l); padding: 3px 10px; border-radius: 999px; font-size: 12.5px; }
+.settings .legend { font-size: 12.5px; color: var(--muted); max-width: 95ch; line-height: 1.45; }
+.settings .allow { display: inline-flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+
+/* ---------- pool ---------- */
+.pool-head { gap: 8px; }
+.pool-head .seg { display: flex; width: 100%; }
+.pool-head .seg button { flex: 1; justify-content: center; padding: 6px 4px; font-size: 12.5px; }
+.pool-head .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pool-head .checks { display: grid; gap: 4px; }
+.pool-head .check { font-size: 12.5px; }
+.pitem > div { min-width: 0; }
+.pitem small { display: block; }
+.pitem .pline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 3px; }
+.pitem .mps { gap: 3px; }
+.pitem .mp { width: 17px; height: 17px; font-size: 9.5px; }
+.pitem .season { font-size: 9px; padding: 2px 7px; }
+.pitem .placed { font-size: 10.5px; padding: 2px 8px 2px 6px; }
+.pitem.is-placed { background: #f5fbf8; border-color: #b4e2c8; opacity: 0.75; }
+.pitem.off { opacity: 0.8; }
+.pitem .mini-add { flex: none; }
+.pool-empty { padding: 18px; color: var(--muted); font-size: 13px; }
+
+/* ---------- day card: meals ---------- */
+.meals { margin: 10px 12px 0; display: grid; gap: 4px; }
+.meal { display: grid; grid-template-columns: 66px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 8px 4px 10px; min-height: 34px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; font-size: 12.5px; line-height: 1.3; transition: background 0.12s, border-color 0.12s, box-shadow 0.12s; }
+.meal .m-l { white-space: nowrap; font: 700 9.5px var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.meal .m-t { min-width: 0; overflow-wrap: anywhere; }
+.meal small { display: block; color: var(--ink-2); font-size: 11.5px; }
+.meal .m-name { font-weight: 700; color: var(--ink); }
+.meal .m-name:hover { color: var(--lagoon-d); }
+.meal .m-ov { font-style: normal; font-size: 10.5px; color: var(--muted); }
+.meal.hotel { background: #f3f6fd; border-color: #d3def3; }
+.meal.hotel .m-t b { font-weight: 600; }
+.meal.eat { background: #fff5f1; border-color: #f7d4c9; }
+.meal.open, .meal.out { border: 1.5px dashed var(--line); background: transparent; color: var(--muted); }
+.meal.out { border-color: #efc5b8; color: var(--ink-2); }
+.meal.skip { background: var(--sand); color: var(--muted); }
+.meal.none { background: transparent; border-style: dashed; color: var(--muted); opacity: 0.75; }
+.meal.mover { border-style: solid; border-color: var(--lagoon); background: var(--lagoon-l); box-shadow: 0 0 0 3px var(--lagoon-l); color: var(--ink); }
+.meal .mbtn { border: 1px solid var(--line); background: #fff; color: var(--ink-2); border-radius: 999px; padding: 2px 10px; font: 600 11px var(--body); white-space: nowrap; }
+.meal .mbtn:hover { background: var(--lagoon-d); border-color: var(--lagoon-d); color: #fff; }
+.meal .m-x { border: 0; background: transparent; color: var(--muted); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; padding: 0; }
+.meal .m-x:hover { background: var(--coral-l); color: var(--coral-d); }
+.meals + .blocks { padding-top: 10px; }
+
+/* off-season badge on day activity blocks */
+.block .season { font-size: 9px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
+
+/* day footer */
+.day-foot .f-l { display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: baseline; }
+.day-foot .f-l small { color: var(--muted); font-size: 12px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 620px) {
+  .break span { padding: 3px 9px 4px; }
+  .settings input.sm-num { width: 60px; }
+  .meal { grid-template-columns: 62px minmax(0, 1fr) auto; gap: 6px; padding-left: 8px; }
+}
+
+/* ---------- print ---------- */
+@media print {
+  .meal .mbtn, .meal .m-x { display: none !important; }
+  .meal.open, .meal.none { border-color: #ccc; }
+  .meal { break-inside: avoid; }
+  .break { gap: 4px 22px; }
+  .break span { background: none; padding: 0; }
+}
