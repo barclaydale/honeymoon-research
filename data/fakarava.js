@@ -1,0 +1,60 @@
+HM.addIsland({
+  id: "fakarava",
+  name: "Fakarava",
+  group: "Tuamotu Islands",
+  cost: 2,
+  vibe: "Off the beaten path",
+  pace: "Adventurous",
+  terrain: "Atoll",
+  scores: [3, 4, 5, 2],
+  tagline: "Sharks, silence and a UNESCO lagoon",
+  short: "A 60 km rectangle of coral protected as a UNESCO biosphere reserve, home to the biggest gathering of grey reef sharks on the planet. Simple pensions, empty roads and star-filled skies make it the wildest and most low-key of the big Tuamotu atolls.",
+  unique: "Fakarava is the Tuamotus for people who care more about wildlife than resorts: there are no overwater bungalows, only pensions, and the marquee sights are 700 grey reef sharks in the South Pass and the drift through the huge Garuae pass. Choose the north (Rotoava, easy, cheaper, close to the airport) or the far south (Tetamanu, remote, full board, shark wall on your doorstep) as they feel like two different islands.",
+  palette: ["#5FA8DA", "#FFE7C4", "#5F9E6E", "#1D9FC0"],
+  scene: "atoll",
+  transfer: 20,
+  meta: {
+    population: "≈ 800 (2016), mostly in Rotoava",
+    area: "≈ 60 km long × 21 km wide; lagoon ≈ 1,112 km²",
+    highest: "≈ 3 m above sea level",
+    languages: "French (official), Tahitian and Paumotu; English is limited outside dive centres, so learn a few French phrases",
+    timezone: "UTC−10 (no daylight saving; 2 h behind US Pacific in summer)",
+    nights: "4–6 (split north and south if you can)",
+    bestTime: "Diving is good year-round. June and July bring the annual camouflage-grouper spawning and peak shark action at the South Pass (full moons), the driest weather and the coolest water; November–April is hotter and rainier but calmer. Kitesurfing is best in the trade-wind months.",
+    gettingThere: "From Papeete: Air Tahiti, about 1 h 10 min, ≈ $235 one-way, most days; a few weekly hops to Rangiroa (≈ 30 min). The airport is at the north end near Rotoava. South-end lodges collect you by boat, 1–1.5 h across the lagoon.",
+    gettingAround: "In the north a single road runs along the rim from Rotoava and bicycles are the way: most pensions lend or rent them (e-bikes and scooters exist too). To reach the South Pass, Tetamanu and the pink sand you need a boat; day-trip operators run from Rotoava and pensions organise their own.",
+    dailyBudget: "North pensions with breakfast and dinner ≈ $300–450 for two; south-end full-board lodges ≈ $450–600 for two including transfers and meals; a South Pass day trip ≈ $100–200 per person; dives ≈ $90–110 each.",
+    bestFor: ["Shark and big-fish divers", "Snorkelers who want drift dives from a boat", "Off-grid stays", "Stargazing and silence"],
+    skipIf: ["You want a resort with pools, spa and overwater bungalows", "You dislike small boats and 1+ hour lagoon crossings", "You want gourmet dining"],
+    goodToKnow: [
+      "The South Pass is about 60 km by lagoon from Rotoava: 1 h to 1 h 30 min each way. If sharks are the reason you came, sleep at the south end (Tetamanu, Raimiti or Motu Aito) rather than commuting.",
+      "South-end pensions are full board and off-grid: solar power, limited electricity, rain water, few signals, and cash or card by arrangement. Check the transfer and food are included.",
+      "The shark wall is a level-1+ certified dive (age 12+) at about 25 m; snorkelers get a great show at the surface with a guide.",
+      "A few tiny shops in Rotoava sell basics; bring any special medicine, snacks and sunscreen from Tahiti."
+    ]
+  },
+  act: [
+    ["South Pass shark wall dive (Tumakohua)", "The world-famous dive: hang in the current at about 25 m as up to 700 grey reef sharks patrol the drop-off and the channel, alongside eagle rays, napoleon wrasse and huge schools of fish. Certified divers only (level 1+, age 12+). From Rotoava it is a full-day trip with a 1 h 15–1 h 30 boat leg each way; from a south-end lodge a two-tank outing costs about $100–130.", "dive wildlife adventure", "C", 4, 200, 4, 80, "u:https://www.tetamanudiving.com/en/"],
+    ["Garuae Pass drift dive (north)", "The largest pass in French Polynesia (about 1.4 km wide) is a strong, fast drift dive over coral with grey reef sharks, barracuda, napoleon wrasse, dolphins and, with luck, manta rays. Done from the north-end dive centres at Rotoava; time it for the incoming tide. Advanced level suits it best.", "dive wildlife adventure", "C", 4, 100, 2.5, 10, "t:Fakarava diving Garuae pass"],
+    ["South Pass day trip: Tetamanu, pink sand & Hirifa", "A full-day boat trip from Rotoava down the lagoon: drift-snorkel over the shark wall with a guide, visit the old village of Tetamanu, walk on pink sand and have a barbecue lunch on Hirifa beach with weaving and coconut-bread demos. Around 1 h 30 each way; go on a calm day and take a hat.", "boat snorkel wildlife beach", "C", 4, 110, 8, 10, "u:https://www.fakaravaexcursions.com/welcome-eng/"],
+    ["Snorkel with sharks in the South Pass", "Snorkelers float above the shark wall in the current on a boat-assisted drift, looking down at dozens to hundreds of grey reef sharks in clear water. The pass is safest with a local guide and the incoming tide; south-end lodges can arrange trips from their doorstep.", "snorkel wildlife adventure", "C", 4, 70, 2, 30, "w:Grey reef shark"],
+    ["Tetamanu village ruins & coral church", "The old capital of Fakarava, now home to about 40 people, has a graveyard, a school and the remains of an 1874 coral-block church along a grassy street. It is a quiet half hour of history beside a shark-filled pass; visit early before the day-trip boats arrive.", "history culture scenic", "U", 3, 0, 1.5, 90, "w:Fakarava"],
+    ["Pink sand beach (Sables Roses)", "A string of motus south of the South Pass with pink-tinged sand and shallows that fade from pale to deep turquoise. South-end lodges drop you off in the morning (Tetamanu Village does 8:30–11:00) and pick you up; otherwise it is part of the South Pass day trip. No shade and no shops.", "beach romance relax", "U", 4, 0, 2.5, 75, "u:https://farandawayadventures.com/fakarava-excursions/"],
+    ["Blue & Green Lagoon (Teahatea) north tour", "The northern day-trip loop: a fast boat to the Blue Lagoon on Motu Teahatea, a natural swimming pool with blacktip sharks and coral, then a picnic lunch on the beach. A cheaper, shorter alternative to the South Pass day trip.", "boat snorkel beach wildlife", "U", 3, 100, 7, 10, "u:https://www.fakaravaexcursions.com/welcome-eng/"],
+    ["Pufana coral rock snorkel", "An afternoon boat trip out to a coral outcrop with abundant fish and a very chilled feel, the sort of place tour groups often skip. Free snorkel gear and a guide, about 2 hours; the light is best in the afternoon.", "snorkel relax wildlife", "H", 2, 70, 2, 10, "t:Fakarava snorkeling Pufana"],
+    ["Havaiki pearl farm & pearl lottery", "A small family pearl farm north of Rotoava where you watch an oyster being grafted, then draw an oyster from the water and open it for your own pearl (about €35 for the lottery; the visit itself is free). Starts around 9 am; a lovely, low-key souvenir.", "shopping culture local", "U", 3, 40, 1.5, 10, "t:Havaiki Pearl Lodge Fakarava"],
+    ["Cycle to PK9 beach & the lagoon promenade", "Ride 9 km west of Rotoava on a quiet dirt road to PK9, a bleached-white coral beach with lean palms and excellent snorkelling at low tide. Add the fishermen's dock and the lagoon promenade in Rotoava on the way. Most pensions lend bikes; take water and sunscreen, as there are no facilities.", "bike beach local snorkel", "H", 2, 0, 3.5, 0, "u:https://www.mylittlepolynesia.com/en/best-things-to-do-fakarava/"],
+    ["Stargazing from the jetty", "With almost no light pollution and a horizon-to-horizon sky, the Milky Way here is astonishing. Wait for moonless nights (dry season is clearest), lie on a pontoon at your pension and bring a red-light torch and a sarong; a romantic free finale to a dive day.", "night romance scenic relax", "H", 3, 0, 1.5, 0, "w:Milky Way"],
+    ["Rotoava village stroll", "The only village of any size: a village church, a few craft and pearl shops, small groceries and snack stands, and a very slow pace. Twenty minutes to an hour, ideally in the late afternoon; stock up on basics here.", "local culture shopping", "C", 3, 0, 1.5, 5, "w:Rotoava"],
+    ["Kayak & paddleboard the lagoon flats", "The shallows off most north and south pensions are clear, calm and full of small fish. Guesthouses such as Raimiti lend kayaks and snorkel gear free; paddle to a nearby motu at dawn or sunset, and watch for rays and blacktip sharks below.", "water relax snorkel", "U", 3, 0, 2, 0, "t:Fakarava kayak"],
+    ["Kitesurf lesson (north lagoon)", "The northern lagoon has steady trade winds and shallow water, popular for kite lessons. The Tuamotu Kite School and others run sessions in the windier months. Price is an estimate for a two-hour lesson; confirm the operator and season.", "water adventure surf", "U", 2, 110, 2.5, 10, "t:Fakarava kitesurf"],
+    ["Grouper-spawning & shark frenzy dive (June–July)", "At the full moons of June and July thousands of camouflage groupers spawn at the mouth of the South Pass, and the sharks gather to feed. It is a bucket-list Tuamotu event, but it needs an advanced diver, a calendar-aligned trip and a south-end base; the price shown is for a dive from a south lodge.", "dive wildlife adventure", "H", 1, 130, 3, 30, "w:Camouflage grouper"]
+  ],
+  stay: [
+    ["Tetamanu Village & Sauvage", "Eco-lodge", "Bungalows on the very edge of the Tumakohua Pass: Village (6) and the more isolated Sauvage (9), each with a private bathroom and pass views. Rate is per couple on full board with transfer from the airport (about 1.5–2 h) and daily drop-off to the pink sand; the Tetamanu Diving centre is on site.", "secluded allinc view reef", 540, "u:https://www.tetamanudiving.com/en/", "South Pass, Tetamanu", "Remote; the rate is an estimate, so ask for the current price."],
+    ["Pension Raimiti", "Pension", "Open-air bungalows (Robinson for couples, Crusoe for up to 4) on the south-east motu, an off-grid stay 60–90 min by boat from the airport. Rates include meals, transfers, kayaks and snorkel gear; the Tumakohua Pass is a short boat ride away.", "secluded allinc local beachfront", 555, "u:https://raimiti-fakarava.com/en/rates/", "South-east, near Tumakohua Pass", "Robinson bungalow about 55,500 XPF/night for two, meals included."],
+    ["Motu Aito Paradise", "Pension", "A private-island pension of 8 bungalows (garden, lagoon and suites) on a south-end motu, with fresh fish and lobster meals and the Top Dive centre on site. Full board; rates are quoted per person, so the price shown is for two. Fewer frills, more sharks.", "secluded allinc reef", 460, "t:Motu Aito Paradise Fakarava", "South end, near the pass", "Listing shows ≈ $218–238 per person, full board."],
+    ["Havaiki Pearl Lodge", "Pension", "Bungalows on a sand beach just north of Rotoava, in garden or beach categories (the beach ones have A/C), with lagoon sunset views, an on-site pearl farm and breakfast plus set dinners included. The best mix of comfort and convenience in the north.", "beachfront view local", 435, "t:Havaiki Pearl Lodge Fakarava", "North of Rotoava village", "Rate is for two, breakfast and dinner."],
+    ["Pension Vaiama Village", "Pension", "A simple family pension on a white-sand beach about 7 km from Rotoava, with six equipped bungalows, a lit pontoon and warm hosts (Dahlia and Jean-Jacques). Quiet, good value; dive partners pick you up. Prices listed range widely.", "beachfront local secluded", 330, "u:https://www.te-ava-nui.com/en/vaiama-fakarava-en.html", "7 km from Rotoava, north", "Check the current tariff; sources show ≈ $250–430."]
+  ]
+});
