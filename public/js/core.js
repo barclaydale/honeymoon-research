@@ -189,56 +189,80 @@
   ];
 
   /* ---------- persistent store ----------
-     Ratings and days carry timestamps (rT / day.t / itin.mt / itin.dt) so two people's edits can be merged
-     item-by-item (see js/merge.js). Timestamps are assigned centrally in S.save() by diffing against the last snapshot. */
+     Multiple named itinerary drafts live side by side — e.g. "Grace's honeymoon" and "Daniel's
+     honeymoon" built independently, then compared and combined into a joint plan by duplicating one
+     and hand-editing it. Ratings are shared across every draft: they're your opinion of a place, not
+     part of any one plan. Every draft and every day carries timestamps (itinsT / day.t / itin.mt /
+     itin.dt) so two people's edits merge item-by-item (see js/merge.js), the same way ratings do.
+     Timestamps are assigned centrally in S.save() by diffing against the last snapshot. Which draft
+     you're currently viewing (S.active) is a per-device preference, not synced — so you and your
+     partner can each be looking at a different draft on your own screens at the same time. */
   const KEY = "tiare-tide.honeymoon.v1";
+  const ACTIVE_KEY = "tiare-tide.honeymoon.active";
+  const MAIN_ID = "main";
   const blankDay = () => ({ island: null, lodging: null, items: [], pref: "fast", meals: {}, t: 0 });
-  const defaults = () => ({
-    v: 3, ratings: {}, rT: {},
-    itin: { days: Array.from({ length: HM.DEFAULT_DAYS }, blankDay), start: HM.DEFAULT_START, hub: true, extras: 0, allow: { b: 25, l: 45, d: 90 }, gateway: "phl", mt: 0, dt: 0 }
-  });
-  const S = (HM.store = { state: defaults(), snap: null });
+  const blankItin = (name) => ({ name: name || "Untitled draft", days: Array.from({ length: HM.DEFAULT_DAYS }, blankDay), start: HM.DEFAULT_START, hub: true, extras: 0, allow: { b: 25, l: 45, d: 90 }, gateway: "phl", mt: 0, dt: 0 });
+  const defaults = () => ({ v: 4, ratings: {}, rT: {}, itins: { [MAIN_ID]: blankItin("Our itinerary") }, itinsT: { [MAIN_ID]: 0 } });
+  const S = (HM.store = { state: defaults(), snap: null, active: MAIN_ID });
   const dayKey = (d) => JSON.stringify([d.island, d.lodging, d.items, d.pref, d.meals]);
-  const metaKey = (it) => JSON.stringify([it.start, it.hub, it.extras, it.allow, it.gateway]);
-  const makeSnap = () => { const st = S.state; return { ratings: Object.assign({}, st.ratings), days: st.itin.days.map(dayKey), len: st.itin.days.length, meta: metaKey(st.itin) }; };
+  const metaKey = (it) => JSON.stringify([it.name, it.start, it.hub, it.extras, it.allow, it.gateway]);
+  const makeSnap = () => {
+    const st = S.state, itins = {};
+    Object.keys(st.itins).forEach((id) => { const it = st.itins[id]; itins[id] = { days: it.days.map(dayKey), len: it.days.length, meta: metaKey(it) }; });
+    return { ratings: Object.assign({}, st.ratings), ids: Object.keys(st.itins).sort(), itins };
+  };
   S.rebuildSnap = () => (S.snap = makeSnap());
+  // make sure S.active points at a draft that actually exists (falls back to "main", or recreates a blank one if every draft is gone)
+  S.ensureActive = function () {
+    if (!Object.keys(S.state.itins).length) { S.state.itins[MAIN_ID] = blankItin("Our itinerary"); S.state.itinsT[MAIN_ID] = Date.now(); }
+    if (!S.state.itins[S.active]) S.active = S.state.itins[MAIN_ID] ? MAIN_ID : Object.keys(S.state.itins)[0];
+    try { localStorage.setItem(ACTIVE_KEY, S.active); } catch (e) {}
+  };
+  S.itin = () => S.state.itins[S.active];
 
   S.load = function () {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
-        const p = JSON.parse(raw), d = defaults();
-        S.state = { v: 3, ratings: p.ratings || d.ratings, rT: p.rT || {}, itin: Object.assign(d.itin, p.itin || {}) };
-        const it = S.state.itin;
-        it.allow = Object.assign({ b: 25, l: 45, d: 90 }, it.allow || {});
-        if (!HM.GATEWAYS[it.gateway]) it.gateway = "phl";
-        it.days = (it.days || []).map((x) => Object.assign(blankDay(), x));
-        if (!p.v || p.v < 2) {                       // migrate the earliest 12-day / no-dates version
-          while (it.days.length < HM.DEFAULT_DAYS) it.days.push(blankDay());
-          if (!it.start) it.start = HM.DEFAULT_START;
-          if (p.itin && p.itin.meals) it.extras = Number(p.itin.meals) || 0;
+        const p = JSON.parse(raw);
+        if (p.itin && !p.itins) {                        // migrate a single-itinerary save (v ≤ 3) to the multi-draft shape
+          const it = p.itin;
+          if (!p.v || p.v < 2) {                          // and, older still, the earliest 12-day / no-dates version
+            while ((it.days || []).length < HM.DEFAULT_DAYS) (it.days = it.days || []).push(blankDay());
+            if (!it.start) it.start = HM.DEFAULT_START;
+            if (it.meals) it.extras = Number(it.meals) || 0;
+          }
+          p.itins = { [MAIN_ID]: Object.assign(blankItin("Our itinerary"), it, { name: "Our itinerary" }) };
+          p.itinsT = { [MAIN_ID]: it.mt || it.dt || 1 };
+          delete p.itin;
         }
-        delete it.meals;
-        if (!it.days.length) it.days = d.itin.days;
+        S.state = window.TTMerge ? window.TTMerge.normalize(p) : p;
       }
     } catch (e) {}
+    try { S.active = localStorage.getItem(ACTIVE_KEY) || MAIN_ID; } catch (e) { S.active = MAIN_ID; }
+    S.ensureActive();
     S.rebuildSnap();
   };
   S.persistLocal = function () { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) {} };
   // stamp whatever changed since the last snapshot, so the merge knows which side is newer for each item
   S.stamp = function () {
-    const st = S.state, it = st.itin, snap = S.snap || makeSnap(), now = Date.now();
+    const st = S.state, snap = S.snap || makeSnap(), now = Date.now();
     new Set([...Object.keys(st.ratings), ...Object.keys(snap.ratings)]).forEach((k) => { if ((st.ratings[k] || "") !== (snap.ratings[k] || "")) st.rT[k] = now; });
-    it.days.forEach((d, i) => { if (dayKey(d) !== snap.days[i]) d.t = now; });
-    if (it.days.length !== snap.len) it.dt = now;
-    if (metaKey(it) !== snap.meta) it.mt = now;
+    const curIds = Object.keys(st.itins);
+    new Set([...curIds, ...snap.ids]).forEach((id) => { if (curIds.includes(id) !== snap.ids.includes(id)) st.itinsT[id] = now; });   // a draft appeared or disappeared
+    curIds.forEach((id) => {
+      const it = st.itins[id], sp = snap.itins[id]; if (!sp) return;   // brand new this cycle: already freshly timestamped at creation
+      it.days.forEach((d, i) => { if (dayKey(d) !== sp.days[i]) d.t = now; });
+      if (it.days.length !== sp.len) it.dt = now;
+      if (metaKey(it) !== sp.meta) it.mt = now;
+    });
     S.snap = makeSnap();
   };
   S.save = function () { S.stamp(); S.persistLocal(); if (S.onSave) S.onSave(); };
   // replace local state with a merged remote state (no stamping: it is not a local edit)
   S.adopt = function (state) {
-    const st = window.TTMerge ? window.TTMerge.normalize(state) : state;
-    S.state = { v: 3, ratings: st.ratings, rT: st.rT, itin: st.itin }; S.rebuildSnap(); S.persistLocal();
+    S.state = window.TTMerge ? window.TTMerge.normalize(state) : state;
+    S.ensureActive(); S.rebuildSnap(); S.persistLocal();
   };
   S.getRating = (key) => S.state.ratings[key] || "";
   S.rate = function (key, val) {  // toggles: same value again clears it
@@ -246,14 +270,47 @@
     S.save(); return S.state.ratings[key] || "";
   };
   S.uid = () => "i" + Math.random().toString(36).slice(2, 9);
+
+  /* ---------- itinerary drafts: create, duplicate, rename, delete, switch ---------- */
+  const commitDrafts = () => { S.save(); if (HM.ui && HM.ui.refreshNav) HM.ui.refreshNav(); document.dispatchEvent(new CustomEvent("hm:itin")); };
+  HM.drafts = () => Object.keys(S.state.itins).map((id) => ({ id, name: S.state.itins[id].name }));
+  // copyFromId set -> duplicate that draft's days/settings under a new name; omitted -> a fresh blank draft
+  HM.newDraft = function (name, copyFromId) {
+    const id = S.uid(), now = Date.now();
+    const base = copyFromId && S.state.itins[copyFromId] ? JSON.parse(JSON.stringify(S.state.itins[copyFromId])) : blankItin();
+    base.name = (name || "").trim() || "Untitled draft";
+    base.mt = now; base.dt = now; base.days.forEach((d) => { d.t = now; });
+    S.state.itins[id] = base; S.state.itinsT[id] = now;
+    S.active = id; try { localStorage.setItem(ACTIVE_KEY, id); } catch (e) {}
+    commitDrafts();
+    return id;
+  };
+  HM.renameDraft = function (id, name) {
+    const it = S.state.itins[id]; if (!it || !(name || "").trim()) return;
+    it.name = name.trim(); commitDrafts();
+  };
+  HM.deleteDraft = function (id) {
+    if (Object.keys(S.state.itins).length <= 1) return false;   // always keep at least one draft
+    delete S.state.itins[id];
+    if (S.active === id) S.active = Object.keys(S.state.itins)[0];
+    commitDrafts();
+    return true;
+  };
+  S.setActive = function (id) {
+    if (!S.state.itins[id] || id === S.active) return;
+    S.active = id; try { localStorage.setItem(ACTIVE_KEY, id); } catch (e) {}
+    if (HM.ui && HM.ui.refreshNav) HM.ui.refreshNav();
+    document.dispatchEvent(new CustomEvent("hm:itin"));
+  };
+
   S.load();
   HM.blankDay = blankDay;
 
   /* ---------- season: which months does the trip cover? ---------- */
-  HM.tripStart = () => { const d = new Date((S.state.itin.start || HM.DEFAULT_START) + "T12:00:00"); return isNaN(d) ? new Date(HM.DEFAULT_START + "T12:00:00") : d; };
-  HM.tripEnd = () => { const d = HM.tripStart(); d.setDate(d.getDate() + Math.max(0, S.state.itin.days.length - 1)); return d; };
+  HM.tripStart = () => { const d = new Date((S.itin().start || HM.DEFAULT_START) + "T12:00:00"); return isNaN(d) ? new Date(HM.DEFAULT_START + "T12:00:00") : d; };
+  HM.tripEnd = () => { const d = HM.tripStart(); d.setDate(d.getDate() + Math.max(0, S.itin().days.length - 1)); return d; };
   HM.tripMonths = () => {
-    const m = new Set(), d = HM.tripStart(), n = S.state.itin.days.length;
+    const m = new Set(), d = HM.tripStart(), n = S.itin().days.length;
     for (let i = 0; i < n; i++) { m.add(d.getMonth() + 1); d.setDate(d.getDate() + 1); }
     return m;
   };
@@ -272,7 +329,7 @@
   /* ---------- where is something already planned? ---------- */
   HM.placedDays = function (kind, id) {
     const out = [];
-    S.state.itin.days.forEach((d, i) => {
+    S.itin().days.forEach((d, i) => {
       if (kind === "a" && d.items.some((x) => x.t === "a" && x.id === id)) out.push(i + 1);
       else if (kind === "e" && d.meals && Object.values(d.meals).some((m) => m && m.r === id)) out.push(i + 1);
       else if (kind === "s" && d.lodging === id) out.push(i + 1);
@@ -286,8 +343,9 @@
   };
 
   /* ---------- trip math ---------- */
-  HM.calcTrip = function () {
-    const it = S.state.itin, out = { days: [], totals: { act: 0, travel: 0, stay: 0, meals: 0, extras: 0, intl: 0, all: 0 }, daysOn: {}, route: [] };
+  // itin: pass another draft's object to cost it out without switching the active one (used to compare drafts)
+  HM.calcTrip = function (itin) {
+    const it = itin || S.itin(), out = { days: [], totals: { act: 0, travel: 0, stay: 0, meals: 0, extras: 0, intl: 0, all: 0 }, daysOn: {}, route: [] };
     let prev = null;
     it.days.forEach((d, idx) => {
       const day = { idx, island: d.island, travel: null, depart: null, gwOut: null, gwBack: null, items: [], lodging: null, mins: 0, costs: { act: 0, travel: 0, stay: 0, meals: 0, intl: 0 }, meals: {} };
@@ -345,7 +403,7 @@
     return out;
   };
   HM.dayDate = function (idx) {
-    const d = HM.tripStart(); if (!S.state.itin.start) return null;
+    const d = HM.tripStart(); if (!S.itin().start) return null;
     d.setDate(d.getDate() + idx);
     return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   };

@@ -1,5 +1,16 @@
 /* Itinerary page additions: meals in day cards, dining pool, meal-aware settings and trip bar. Loaded after styles.css. */
 
+/* ---------- draft switcher ---------- */
+.draft-bar { background: var(--sand-2); border-bottom: 1px solid var(--line-2); }
+.draft-bar .wrap { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding-block: 10px; }
+.draft-pick { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 280px; }
+.draft-pick .dp-eyebrow { font: 700 10.5px var(--body); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.draft-pick select { border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font: 600 13.5px var(--body); background: #fff; color: var(--ink); max-width: 100%; }
+.draft-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.draft-actions .btn { padding: 6px 12px; font-size: 12.5px; }
+.draft-actions .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.draft-actions .btn:disabled:hover { border-color: var(--line); color: var(--ink-2); }
+
 /* ---------- trip bar ---------- */
 .trip-bar .wrap { gap: 10px 26px; }
 .break { gap: 6px; align-items: stretch; }

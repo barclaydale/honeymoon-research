@@ -21,9 +21,9 @@
   }).join("");
   document.getElementById("combos").addEventListener("click", (e) => {
     const b = e.target.closest("[data-combo]"); if (!b) return;
-    const c = HM.COMBOS.find((x) => x.id === b.dataset.combo), it = S.state.itin;
+    const c = HM.COMBOS.find((x) => x.id === b.dataset.combo), it = S.itin();
     const dirty = it.days.some((d) => d.items.length || d.lodging);
-    if (dirty && !confirm("This replaces the islands on your itinerary. Days you've filled in will keep their activities only if they still match the island; the rest are cleared. Continue?")) return;
+    if (dirty && !confirm(`This replaces the islands on "${it.name}". Days you've filled in will keep their activities only if they still match the island; the rest are cleared. Continue?`)) return;
     const old = it.days;
     it.days = c.days.map((isl, i) => { const o = old[i]; const keep = o && o.island === isl; return Object.assign(HM.blankDay(), { island: isl, lodging: keep ? o.lodging : null, items: keep ? o.items : [], meals: keep && o.meals ? o.meals : {} }); });
     S.save(); location.href = "itinerary.html";

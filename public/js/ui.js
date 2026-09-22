@@ -240,7 +240,7 @@
   const persist = () => { S.save(); UI.refreshNav(); document.dispatchEvent(new CustomEvent("hm:itin")); };
   const dupNote = (kind, id, dayIdx) => { const o = HM.placedDays(kind, id).filter((n) => n !== dayIdx + 1); return o.length ? ` (heads up: it's also on Day ${o.join(", ")})` : ""; };
   A.addAct = function (dayIdx, id, at) {
-    const a = HM.getAct(id), d = S.state.itin.days[dayIdx]; if (!a || !d) return { ok: false, msg: "Day not found" };
+    const a = HM.getAct(id), d = S.itin().days[dayIdx]; if (!a || !d) return { ok: false, msg: "Day not found" };
     if (d.island && d.island !== a.island) return { ok: false, msg: `Day ${dayIdx + 1} is on ${HM.getIsland(d.island).name}. Change the day's island first.` };
     let msg = `Added to Day ${dayIdx + 1}`;
     if (!d.island) { d.island = a.island; msg += ` (now on ${HM.getIsland(a.island).name})`; }
@@ -249,13 +249,13 @@
     d.items.splice(at == null ? d.items.length : at, 0, { uid: S.uid(), t: "a", id }); persist(); return { ok: true, msg };
   };
   A.addCustom = function (dayIdx, c, at) {
-    const d = S.state.itin.days[dayIdx]; if (!d) return { ok: false, msg: "Day not found" };
+    const d = S.itin().days[dayIdx]; if (!d) return { ok: false, msg: "Day not found" };
     d.items.splice(at == null ? d.items.length : at, 0, { uid: S.uid(), t: "c", name: c.name, hrs: Number(c.hrs) || 0, cost: Number(c.cost) || 0 }); persist();
     return { ok: true, msg: `Added to Day ${dayIdx + 1}` };
   };
   /* meals: d.meals[k] = {r: restaurantId} | {skip:true} | {out:true} ("eat elsewhere" although the hotel includes it) */
   A.addEat = function (dayIdx, meal, id) {
-    const e = HM.getEat(id), d = S.state.itin.days[dayIdx]; if (!e || !d) return { ok: false, msg: "Not found" };
+    const e = HM.getEat(id), d = S.itin().days[dayIdx]; if (!e || !d) return { ok: false, msg: "Not found" };
     if (!e.meals.includes(meal)) return { ok: false, msg: `${e.name} doesn't serve ${HM.MEAL_WORD[meal]}.` };
     if (d.island && d.island !== e.island) return { ok: false, msg: `Day ${dayIdx + 1} is on ${HM.getIsland(d.island).name}. ${e.name} is on ${HM.getIsland(e.island).name}.` };
     const st = HM.calcTrip().days[dayIdx].meals[meal];
@@ -272,16 +272,16 @@
     return k ? A.addEat(dayIdx, k, id) : { ok: false, msg: `No open meal on Day ${dayIdx + 1} that ${e.name} serves.` };
   };
   A.setMeal = function (dayIdx, meal, val) {   // val: null (clear) | {skip:true} | {out:true}
-    const d = S.state.itin.days[dayIdx]; if (!d) return; d.meals = d.meals || {};
+    const d = S.itin().days[dayIdx]; if (!d) return; d.meals = d.meals || {};
     if (val) d.meals[meal] = val; else delete d.meals[meal]; persist();
   };
   A.addStay = function (dayIdxs, id) {
     const s = HM.getStay(id); if (!s) return { ok: false, msg: "Stay not found" };
     let n = 0;
-    dayIdxs.forEach((i) => { const d = S.state.itin.days[i]; if (d && (!d.island || d.island === s.island)) { d.island = s.island; d.lodging = id; n++; } });
+    dayIdxs.forEach((i) => { const d = S.itin().days[i]; if (d && (!d.island || d.island === s.island)) { d.island = s.island; d.lodging = id; n++; } });
     persist(); return n ? { ok: true, msg: `${s.name} set for ${n} night${n > 1 ? "s" : ""}` + (HM.stayUnavailable(s) ? " · heads up: it looks unavailable on your dates (see its note)" : "") } : { ok: false, msg: "No matching days" };
   };
-  A.ensureDays = (n) => { const it = S.state.itin; while (it.days.length < n) it.days.push(HM.blankDay()); };
+  A.ensureDays = (n) => { const it = S.itin(); while (it.days.length < n) it.days.push(HM.blankDay()); };
 
   /* ---------- "which day?" picker ---------- */
   UI.pickDay = function (kind, id) {

@@ -64,7 +64,9 @@ export async function PUT(req: NextRequest) {
   if (!state || typeof state !== "object") return json(400, { error: "bad_body" });
 
   const incoming = normalize(state);
-  if (incoming.itin.days.length > 60) return json(400, { error: "too_many_days" });
+  const drafts = Object.values(incoming.itins);
+  if (drafts.length > 25) return json(400, { error: "too_many_drafts" });
+  if (drafts.some((it) => it.days.length > 60)) return json(400, { error: "too_many_days" });
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     if (attempt) await sleep(15 + Math.random() * 60 * attempt); // jittered backoff when someone else wrote first

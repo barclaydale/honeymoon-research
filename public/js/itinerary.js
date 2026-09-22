@@ -2,7 +2,7 @@
 (function () {
   const HM = window.HM, UI = HM.ui, S = HM.store, A = HM.actions, esc = HM.esc;
   UI.header("itinerary");
-  const it = () => S.state.itin;
+  const it = () => S.itin();   // the ACTIVE draft — see the draft switcher below for creating/renaming/switching drafts
   const CAP = 720; // minutes of usable day (12 h)
   const dot = (id) => `hsl(${(HM.order.indexOf(id) * 47 + 170) % 360} 52% 44%)`;
   const iname = (id) => (HM.islands[id] || { name: id }).name;
@@ -22,7 +22,46 @@
   // blank in place (Object.assign) so bookkeeping fields the store adds to a day (e.g. its timestamp) survive
   const blank = (d) => Object.assign(d, HM.blankDay());
   const hasContent = (d) => d.items.length || d.lodging || d.island || Object.keys(d.meals || {}).length;
-  document.getElementById("reset").onclick = () => { if (confirm("Clear every day, activity, stay and meal from your itinerary? Your ratings are kept.")) { S.state.itin.days.forEach(blank); commit(); } };
+  document.getElementById("reset").onclick = () => { if (confirm(`Clear every day, activity, stay and meal from "${it().name}"? Your ratings are kept.`)) { it().days.forEach(blank); commit(); } };
+
+  /* ---------- draft switcher: named itinerary drafts you can compare (e.g. "Grace's honeymoon" vs "Daniel's honeymoon"),
+     duplicate into a joint plan, rename or delete. Which draft is active is per-device (not synced) — see HM.newDraft
+     / HM.renameDraft / HM.deleteDraft / S.setActive in js/core.js for the data side. ---------- */
+  function renderDrafts() {
+    const box = document.getElementById("drafts"); if (!box) return;
+    const ids = Object.keys(S.state.itins), canDelete = ids.length > 1;
+    const options = ids.map((id) => {
+      const draft = S.state.itins[id], trip = HM.calcTrip(draft);
+      const planned = trip.days.reduce((s, d) => s + d.items.length, 0);
+      const label = `${draft.name} — ${draft.days.length} day${draft.days.length === 1 ? "" : "s"} · ${HM.money(trip.totals.all)}${planned ? ` · ${planned} planned` : ""}`;
+      return `<option value="${id}" ${id === S.active ? "selected" : ""}>${esc(label)}</option>`;
+    }).join("");
+    box.innerHTML = `<label class="draft-pick"><span class="dp-eyebrow">Editing draft</span><select id="draft-select" aria-label="Choose which itinerary draft to view and edit">${options}</select></label>
+      <div class="draft-actions">
+        <button class="btn sm" type="button" id="draft-new">${UI.icons.plus} New draft</button>
+        <button class="btn sm ghost" type="button" id="draft-dup">Duplicate</button>
+        <button class="btn sm ghost" type="button" id="draft-rename">Rename</button>
+        <button class="btn sm ghost" type="button" id="draft-del" ${canDelete ? "" : `disabled title="Keep at least one draft"`}>Delete</button>
+      </div>`;
+  }
+  document.getElementById("drafts").addEventListener("change", (e) => {
+    if (e.target.id === "draft-select") S.setActive(e.target.value);
+  });
+  document.getElementById("drafts").addEventListener("click", (e) => {
+    if (e.target.closest("#draft-new")) {
+      const name = prompt(`Name this draft (e.g. "Grace's honeymoon"):`, "");
+      if (name && name.trim()) HM.newDraft(name.trim());
+    } else if (e.target.closest("#draft-dup")) {
+      const name = prompt("Name for the copy:", it().name + " copy");
+      if (name && name.trim()) HM.newDraft(name.trim(), S.active);
+    } else if (e.target.closest("#draft-rename")) {
+      const name = prompt("Rename this draft:", it().name);
+      if (name && name.trim()) HM.renameDraft(S.active, name.trim());
+    } else if (e.target.closest("#draft-del")) {
+      if (Object.keys(S.state.itins).length <= 1) return;
+      if (confirm(`Delete "${it().name}"? This can't be undone — its days, settings and name will be gone for both of you.`)) HM.deleteDraft(S.active);
+    }
+  });
 
   /* ---------- trip bar + settings ---------- */
   function renderBar(trip) {
@@ -316,8 +355,8 @@
 
   /* ---------- re-render triggers ---------- */
   const refreshPool = () => { if (P.tab !== "extra" || P.days !== it().days.length) renderPool(); };   // don't wipe a half-typed custom block
-  document.addEventListener("hm:itin", () => { render(); renderSettings(); refreshPool(); });
+  document.addEventListener("hm:itin", () => { renderDrafts(); render(); renderSettings(); refreshPool(); });
   document.addEventListener("hm:rating", () => { if (P.tab !== "extra") renderPool(); });
-  document.addEventListener("hm:sync", () => { UI.refreshNav(); renderSettings(); renderPool(); render(); });   // remote changes were merged into the store
-  renderSettings(); renderPool(); render();
+  document.addEventListener("hm:sync", () => { UI.refreshNav(); renderDrafts(); renderSettings(); renderPool(); render(); });   // remote changes were merged into the store — may include a partner's new/renamed/deleted draft
+  renderDrafts(); renderSettings(); renderPool(); render();
 })();

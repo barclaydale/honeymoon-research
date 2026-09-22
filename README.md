@@ -12,7 +12,7 @@ two of you: a shared trip-code passphrase gates the API instead of accounts.
 | `index.html` | Island cards with tags, filters (budget, crowds, pace, landscape, activities, your picks), outline starters |
 | `island.html?i=moorea` | Overview, then **Activities / Places to stay / Restaurants**, with filters, love / like / pass and "add to itinerary" |
 | `shortlist.html` | Everything you've loved or liked, grouped by island |
-| `itinerary.html` | Drag-and-drop day planner: travel blocks, meals, time meters, running cost |
+| `itinerary.html` | Drag-and-drop day planner: travel blocks, meals, time meters, running cost. Supports multiple named **drafts** (e.g. "Grace's honeymoon" vs "Daniel's honeymoon") that you can switch between, duplicate and compare, then combine into a joint plan |
 
 ## How it's put together
 
@@ -28,6 +28,15 @@ two of you: a shared trip-code passphrase gates the API instead of accounts.
 - **Merge logic**: `src/lib/merge.ts` (server) and `public/js/merge.js` (browser) are twins of the
   same conflict-free merge — kept as two files because the browser copy has to stay a
   dependency-free `<script>`, not a bundled module. If you change the merge rules, change both.
+- **Itinerary drafts**: the trip state holds a *dictionary* of named itinerary drafts (`itins`, keyed
+  by id), not just one. Ratings are shared across every draft — they're your opinion of a place, not
+  part of any one plan. Each draft merges independently (its own settings, days and trip length), and
+  a draft's existence (created / deleted) is tracked the same tombstone way a cleared rating is, so a
+  device that deletes a draft while another device is offline doesn't have it silently reappear once
+  that device reconnects. Which draft you're currently viewing is a per-device preference stored only
+  in `localStorage`, not synced — so you and your partner can each have a different draft open on your
+  own screens at the same time. See the header comment in `src/lib/merge.ts` / `public/js/merge.js`
+  for the exact shape and rules.
 
 ## Deploy on Vercel (one-time setup)
 
