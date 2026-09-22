@@ -17,6 +17,22 @@
 .settings .legend { font-size: 12.5px; color: var(--muted); max-width: 95ch; line-height: 1.45; }
 .settings .allow { display: inline-flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 
+/* ---------- island planning notes ---------- */
+.isle-notes { margin: 16px 0 4px; }
+.isle-notes h3 { font: 700 12.5px var(--body); text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-2); margin: 0 0 8px; }
+.isle-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.isle-card { background: #fff; border: 1px solid var(--line-2); border-radius: var(--r-sm); box-shadow: var(--shadow); padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.isle-card .ic-head { display: grid; gap: 2px; }
+.isle-card .ic-head a { font: 700 14.5px var(--display); color: var(--ink); }
+.isle-card .ic-head a:hover { color: var(--lagoon-d); }
+.isle-card .ic-days { font-size: 12px; color: var(--ink-2); }
+.isle-card .ic-days small { color: var(--muted); }
+.isle-card .ic-days.warn { color: var(--coral-d); font-weight: 600; }
+.isle-card ul.know { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 12.5px; color: var(--ink-2); }
+.isle-card ul.know li { padding-left: 16px; position: relative; }
+.isle-card ul.know li::before { content: ""; position: absolute; left: 2px; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); opacity: 0.85; }
+.isle-card .ic-more { font-size: 12px; font-weight: 600; color: var(--lagoon-d); justify-self: start; }
+
 /* ---------- pool ---------- */
 .pool-head { gap: 8px; }
 .pool-head .seg { display: flex; width: 100%; }

@@ -34,6 +34,31 @@
       <div class="break">${chip("International flights", t.intl, "Home ⇄ Papeete, via LAX — set the departure airport below")}${chip("Activities", t.act)}${chip("Inter-island travel", t.travel)}${chip("Places to stay", t.stay)}${chip("Meals", t.meals, "Restaurants you planned, plus the allowance for meals still open")}${chip("Extras", t.extras, "Other extras per day, counted on days that have an island")}</div>
       <div class="trip-route">${trip.route.length ? pills : "Pick an island for Day 1 to begin"} <small>· ${trip.days.length} days · ${n} planned${mealsPlanned ? " · " + mealsPlanned + " meal" + (mealsPlanned > 1 ? "s" : "") + " booked" : ""}</small></div>`;
   }
+  // "3–5" -> [3,5]; a bare "4" -> [4,4]; unparseable -> null
+  const nightsRange = (s) => {
+    const m = String(s || "").match(/(\d+)\D+(\d+)/) || String(s || "").match(/(\d+)/);
+    return m ? [+m[1], +(m[2] || m[1])] : null;
+  };
+  // one compact reminder card per island actually in the route: recommended length of stay + top "good to know" tips —
+  // the things you'd otherwise have to go back to the island page to re-check while placing days.
+  function renderIsleNotes(trip) {
+    const box = document.getElementById("islenotes");
+    if (!box) return;
+    if (!trip.route.length) { box.innerHTML = ""; return; }
+    const cards = trip.route.map((id) => {
+      const isl = HM.islands[id]; if (!isl) return "";
+      const m = isl.meta || {}, days = trip.daysOn[id] || 0, rng = nightsRange(m.nights);
+      const short = rng && days && days < rng[0];
+      const tips = (m.goodToKnow || []).slice(0, 2);
+      return `<article class="isle-card">
+        <div class="ic-head"><a href="island.html?i=${id}">${esc(isl.name)}</a>
+          <span class="ic-days${short ? " warn" : ""}">${days} day${days === 1 ? "" : "s"} planned${m.nights ? `<small> · we'd suggest ${esc(m.nights)} nights</small>` : ""}</span></div>
+        ${tips.length ? `<ul class="know">${tips.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+        <a class="ic-more" href="island.html?i=${id}">Full island notes →</a>
+      </article>`;
+    }).join("");
+    box.innerHTML = `<h3>Planning notes for your islands</h3><div class="isle-cards">${cards}</div>`;
+  }
   // re-render a region without losing the caret, focus or scroll position (sync / itin events can arrive while typing)
   function keepFocus(box, scrollSel, fn) {
     const ae = document.activeElement, fid = ae && box.contains(ae) && ae.id ? ae.id : null;
@@ -210,6 +235,7 @@
   function render() {
     const trip = HM.calcTrip();
     renderBar(trip);
+    renderIsleNotes(trip);
     document.getElementById("days").innerHTML = trip.days.map(dayHtml).join("");
   }
 
