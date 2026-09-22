@@ -7,7 +7,7 @@
 
    State shape (v3):
      ratings: { "a:moorea/…": "love"|"like"|"dislike" }     rT: { key: timestamp of last change (kept for cleared ratings too) }
-     itin: { days:[{island,lodging,items,pref,meals,t}], start, hub, extras, allow:{b,l,d}, mt: meta timestamp, dt: day-count timestamp }
+     itin: { days:[{island,lodging,items,pref,meals,t}], start, hub, extras, allow:{b,l,d}, gateway, mt: meta timestamp, dt: day-count timestamp }
 
    Rules (last-writer-wins, but per item so two people editing different things never clobber each other):
      * each rating key: newer rT wins (a cleared rating is a "tombstone" with a newer timestamp)
@@ -31,6 +31,7 @@ export interface Itin {
   hub: boolean;
   extras: number;
   allow: { b: number; l: number; d: number };
+  gateway: string;
   mt: number;
   dt: number;
 }
@@ -70,6 +71,7 @@ export function normalize(s: unknown): TripStateData {
       hub: it.hub !== false,
       extras: Number(it.extras) || 0,
       allow: Object.assign({ b: 25, l: 45, d: 90 }, obj(it.allow)) as { b: number; l: number; d: number },
+      gateway: typeof it.gateway === "string" ? it.gateway : "phl",
       mt: Number(it.mt) || 0,
       dt: Number(it.dt) || 0,
     },
@@ -99,8 +101,8 @@ export function merge(x: unknown, y: unknown): TripStateData {
   });
 
   // settings
-  const ma = { start: a.itin.start, hub: a.itin.hub, extras: a.itin.extras, allow: a.itin.allow };
-  const mb = { start: b.itin.start, hub: b.itin.hub, extras: b.itin.extras, allow: b.itin.allow };
+  const ma = { start: a.itin.start, hub: a.itin.hub, extras: a.itin.extras, allow: a.itin.allow, gateway: a.itin.gateway };
+  const mb = { start: b.itin.start, hub: b.itin.hub, extras: b.itin.extras, allow: b.itin.allow, gateway: b.itin.gateway };
   const m = pick(a.itin.mt, ma, b.itin.mt, mb);
   Object.assign(out.itin, m, { mt: Math.max(a.itin.mt, b.itin.mt) });
 

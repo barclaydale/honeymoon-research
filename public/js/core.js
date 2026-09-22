@@ -154,6 +154,31 @@
     return a && b && (a.pp !== b.pp || a.mins !== b.mins) ? { fast: a, value: b } : null;
   };
 
+  /* ---------- international gateway flights ----------
+     Getting from the US mainland to Tahiti (PPT) — a fixed pair of long-haul legs via LAX, not
+     part of the inter-island graph above. Rough 2025-26 per-person, one-way economy estimates;
+     confirm actual fares when booking, they swing a lot by season and how far ahead you book. */
+  HM.GATEWAYS = {
+    phl: { code: "PHL", name: "Philadelphia (PHL)", legs: [
+      ["PHL", "LAX", "air", 355, 220, "American or United, nonstop or one connection, ≈ 6 h in the air"],
+      ["LAX", "PPT", "air", 500, 650, "Air Tahiti Nui or French Bee nonstop, ≈ 8h20m overnight, lands early morning"]
+    ] },
+    jfk: { code: "JFK", name: "New York (JFK)", legs: [
+      ["JFK", "LAX", "air", 375, 230, "Delta, American or United nonstop transcontinental, ≈ 6.5 h"],
+      ["LAX", "PPT", "air", 500, 650, "Air Tahiti Nui or French Bee nonstop, ≈ 8h20m overnight, lands early morning"]
+    ] }
+  };
+  // dir "out": home → Papeete (Day 1); "back": Papeete → home (last day). Buffers reuse the same
+  // check-in / connection constants as the inter-island graph, applied at the origin and at LAX.
+  HM.gatewayRoute = function (code, dir) {
+    const g = HM.GATEWAYS[code]; if (!g) return null;
+    const raw = dir === "back" ? g.legs.slice().reverse() : g.legs;
+    const legs = raw.map((l) => (dir === "back" ? { from: l[1], to: l[0], mode: l[2], mins: l[3], pp: l[4], note: l[5] } : { from: l[0], to: l[1], mode: l[2], mins: l[3], pp: l[4], note: l[5] }));
+    let mins = 0; legs.forEach((l, i) => { mins += l.mins + (i === 0 ? HM.BUFFER[l.mode] : HM.LAYOVER[l.mode]); });
+    const pp = legs.reduce((s, l) => s + l.pp, 0);
+    return { legs, mins, pp, gateway: g.name };
+  };
+
   /* ---------- combos (starter outlines) ---------- */
   const rep = (isl, n) => Array(n).fill(isl);
   HM.COMBOS = [
@@ -170,11 +195,11 @@
   const blankDay = () => ({ island: null, lodging: null, items: [], pref: "fast", meals: {}, t: 0 });
   const defaults = () => ({
     v: 3, ratings: {}, rT: {},
-    itin: { days: Array.from({ length: HM.DEFAULT_DAYS }, blankDay), start: HM.DEFAULT_START, hub: true, extras: 0, allow: { b: 25, l: 45, d: 90 }, mt: 0, dt: 0 }
+    itin: { days: Array.from({ length: HM.DEFAULT_DAYS }, blankDay), start: HM.DEFAULT_START, hub: true, extras: 0, allow: { b: 25, l: 45, d: 90 }, gateway: "phl", mt: 0, dt: 0 }
   });
   const S = (HM.store = { state: defaults(), snap: null });
   const dayKey = (d) => JSON.stringify([d.island, d.lodging, d.items, d.pref, d.meals]);
-  const metaKey = (it) => JSON.stringify([it.start, it.hub, it.extras, it.allow]);
+  const metaKey = (it) => JSON.stringify([it.start, it.hub, it.extras, it.allow, it.gateway]);
   const makeSnap = () => { const st = S.state; return { ratings: Object.assign({}, st.ratings), days: st.itin.days.map(dayKey), len: st.itin.days.length, meta: metaKey(st.itin) }; };
   S.rebuildSnap = () => (S.snap = makeSnap());
 
@@ -186,6 +211,7 @@
         S.state = { v: 3, ratings: p.ratings || d.ratings, rT: p.rT || {}, itin: Object.assign(d.itin, p.itin || {}) };
         const it = S.state.itin;
         it.allow = Object.assign({ b: 25, l: 45, d: 90 }, it.allow || {});
+        if (!HM.GATEWAYS[it.gateway]) it.gateway = "phl";
         it.days = (it.days || []).map((x) => Object.assign(blankDay(), x));
         if (!p.v || p.v < 2) {                       // migrate the earliest 12-day / no-dates version
           while (it.days.length < HM.DEFAULT_DAYS) it.days.push(blankDay());
@@ -261,10 +287,10 @@
 
   /* ---------- trip math ---------- */
   HM.calcTrip = function () {
-    const it = S.state.itin, out = { days: [], totals: { act: 0, travel: 0, stay: 0, meals: 0, extras: 0, all: 0 }, daysOn: {}, route: [] };
+    const it = S.state.itin, out = { days: [], totals: { act: 0, travel: 0, stay: 0, meals: 0, extras: 0, intl: 0, all: 0 }, daysOn: {}, route: [] };
     let prev = null;
     it.days.forEach((d, idx) => {
-      const day = { idx, island: d.island, travel: null, depart: null, items: [], lodging: null, mins: 0, costs: { act: 0, travel: 0, stay: 0, meals: 0 }, meals: {} };
+      const day = { idx, island: d.island, travel: null, depart: null, gwOut: null, gwBack: null, items: [], lodging: null, mins: 0, costs: { act: 0, travel: 0, stay: 0, meals: 0, intl: 0 }, meals: {} };
       if (d.island) {
         const from = prev || (it.hub ? "tahiti" : null);
         if (from && from !== d.island) {
@@ -278,8 +304,13 @@
       if (it.hub && idx === it.days.length - 1 && prev && prev !== "tahiti") {
         day.depart = HM.route(prev, "tahiti", d.pref || "fast");
       }
+      // international gateway flights — home ⇄ Papeete, on top of any inter-island leg above
+      if (it.hub && it.gateway && idx === 0) day.gwOut = HM.gatewayRoute(it.gateway, "out");
+      if (it.hub && it.gateway && idx === it.days.length - 1) day.gwBack = HM.gatewayRoute(it.gateway, "back");
       if (day.travel) { day.mins += day.travel.mins; day.costs.travel += day.travel.pp * 2; }
       if (day.depart) { day.mins += day.depart.mins; day.costs.travel += day.depart.pp * 2; }
+      if (day.gwOut) { day.mins += day.gwOut.mins; day.costs.intl += day.gwOut.pp * 2; }
+      if (day.gwBack) { day.mins += day.gwBack.mins; day.costs.intl += day.gwBack.pp * 2; }
       d.items.forEach((item) => {
         if (item.t === "a") {
           const a = HM.getAct(item.id); if (!a) return;
@@ -305,12 +336,12 @@
         else m = { kind: chosen && chosen.out ? "out" : "open", cost: Number(it.allow[k]) || 0, hostHas: !!(host && host.meals.includes(k)) };
         day.meals[k] = m; day.costs.meals += m.cost;
       });
-      day.cost = day.costs.act + day.costs.travel + day.costs.stay + day.costs.meals + (d.island ? Number(it.extras) || 0 : 0);
-      out.totals.act += day.costs.act; out.totals.travel += day.costs.travel; out.totals.stay += day.costs.stay; out.totals.meals += day.costs.meals;
+      day.cost = day.costs.act + day.costs.travel + day.costs.stay + day.costs.meals + day.costs.intl + (d.island ? Number(it.extras) || 0 : 0);
+      out.totals.act += day.costs.act; out.totals.travel += day.costs.travel; out.totals.stay += day.costs.stay; out.totals.meals += day.costs.meals; out.totals.intl += day.costs.intl;
       if (d.island) out.totals.extras += Number(it.extras) || 0;
       out.days.push(day);
     });
-    out.totals.all = out.totals.act + out.totals.travel + out.totals.stay + out.totals.meals + out.totals.extras;
+    out.totals.all = out.totals.act + out.totals.travel + out.totals.stay + out.totals.meals + out.totals.extras + out.totals.intl;
     return out;
   };
   HM.dayDate = function (idx) {

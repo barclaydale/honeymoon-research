@@ -7,8 +7,6 @@
   const dot = (id) => `hsl(${(HM.order.indexOf(id) * 47 + 170) % 360} 52% 44%)`;
   const iname = (id) => (HM.islands[id] || { name: id }).name;
   const PRESETS = [
-    { name: "Arrive in Papeete: international flight, transfer & rest", hrs: 4, cost: 0 },
-    { name: "Depart Papeete: flight home", hrs: 5, cost: 0 },
     { name: "Beach & pool downtime", hrs: 4, cost: 0 },
     { name: "Long lunch & lazy afternoon", hrs: 2.5, cost: 110 },
     { name: "Romantic splurge dinner", hrs: 2.5, cost: 260 },
@@ -33,7 +31,7 @@
     const pills = trip.route.map((id) => `<i>${esc(iname(id))}</i>`).join("→");
     const chip = (l, v, tip) => `<span${tip ? ` title="${esc(tip)}"` : ""}><small>${l}</small><b>${HM.money(v)}</b></span>`;
     document.getElementById("tripbar").innerHTML = `<div class="total"><small>Estimated total · 2 travelers</small><b>${HM.money(t.all)}</b></div>
-      <div class="break">${chip("Activities", t.act)}${chip("Inter-island travel", t.travel)}${chip("Places to stay", t.stay)}${chip("Meals", t.meals, "Restaurants you planned, plus the allowance for meals still open")}${chip("Extras", t.extras, "Other extras per day, counted on days that have an island")}</div>
+      <div class="break">${chip("International flights", t.intl, "Home ⇄ Papeete, via LAX — set the departure airport below")}${chip("Activities", t.act)}${chip("Inter-island travel", t.travel)}${chip("Places to stay", t.stay)}${chip("Meals", t.meals, "Restaurants you planned, plus the allowance for meals still open")}${chip("Extras", t.extras, "Other extras per day, counted on days that have an island")}</div>
       <div class="trip-route">${trip.route.length ? pills : "Pick an island for Day 1 to begin"} <small>· ${trip.days.length} days · ${n} planned${mealsPlanned ? " · " + mealsPlanned + " meal" + (mealsPlanned > 1 ? "s" : "") + " booked" : ""}</small></div>`;
   }
   // re-render a region without losing the caret, focus or scroll position (sync / itin events can arrive while typing)
@@ -51,7 +49,8 @@
     keepFocus(document.getElementById("settings"), null, () => {
       document.getElementById("settings").innerHTML = `<div class="set-line"><label>Trip length <button class="btn sm" data-days="-1" type="button" aria-label="Remove a day">−</button><input id="ndays" type="number" min="1" max="30" value="${i.days.length}"><button class="btn sm" data-days="1" type="button" aria-label="Add a day">+</button> days</label>
         <label>${UI.icons.cal} Start date <input id="start" type="date" value="${esc(i.start)}"></label>${i.start ? `<span class="range" title="Used to flag off-season activities">${esc(HM.tripRangeLabel())}</span>` : ""}
-        <label title="Adds the trip's first arrival leg and the return leg on the last day"><input id="hub" type="checkbox" ${i.hub ? "checked" : ""}> Fly in and out of Papeete (adds arrival &amp; return travel)</label></div>
+        <label title="Adds the trip's first arrival leg and the return leg on the last day"><input id="hub" type="checkbox" ${i.hub ? "checked" : ""}> Fly in and out of Papeete (adds inter-island &amp; international arrival/return travel)</label>
+        ${i.hub ? `<label>${UI.icons.plane} Flying from <select id="gateway" aria-label="Departure airport">${Object.keys(HM.GATEWAYS).map((k) => `<option value="${k}" ${i.gateway === k ? "selected" : ""}>${esc(HM.GATEWAYS[k].name)}</option>`).join("")}</select></label>` : ""}</div>
         <div class="set-line"><span class="set-t" title="What a breakfast, lunch or dinner is counted at when you haven't planned a restaurant for it (for two people)">Unplanned meal allowance for two:</span>
         <span class="allow"><label>Breakfast <b>$</b>${num("al-b", al.b, 5)}</label><label>Lunch <b>$</b>${num("al-l", al.l, 5)}</label><label>Dinner <b>$</b>${num("al-d", al.d, 5)}</label></span>
         <label>Other extras <b>$</b>${num("extras", i.extras, 10)} /day for two</label></div>
@@ -70,6 +69,7 @@
     if (t.id === "ndays") setLen(+t.value);
     else if (t.id === "start") { i.start = t.value; commit(); }
     else if (t.id === "hub") { i.hub = t.checked; commit(); }
+    else if (t.id === "gateway") { i.gateway = t.value; commit(); }
     else if (t.id === "extras") { i.extras = amt(); commit(); }
     else if (/^al-[bld]$/.test(t.id)) { i.allow = Object.assign({ b: 25, l: 45, d: 90 }, i.allow || {}); i.allow[t.id.slice(3)] = amt(); commit(); }
   });
@@ -155,10 +155,13 @@
   const travelHtml = (r, kind, day) => {
     if (!r) return "";
     const legMins = r.legs.reduce((s, l) => s + l.mins, 0), buf = r.mins - legMins;
-    const title = kind === "depart" ? `Return to Papeete for your flight home` : `${esc(iname(r.from))} → ${esc(iname(r.to))}`;
+    const title = kind === "depart" ? `Return to Papeete for your flight home`
+      : kind === "gwout" ? `Fly in: ${esc(r.gateway)} → Tahiti`
+      : kind === "gwback" ? `Fly home: Tahiti → ${esc(r.gateway)}`
+      : `${esc(iname(r.from))} → ${esc(iname(r.to))}`;
     const legs = r.legs.map((l) => `<span>${UI.modeIcon(l.mode)} ${esc(iname(l.from))} → ${esc(iname(l.to))} · ${HM.MODE_NAME[l.mode]} ${l.mins} min · ≈ ${HM.money(l.pp * 2)} for two</span>`).join("") + `<span>${UI.icons.clock} + ${HM.hours(buf)} for transfers, check-in &amp; connections</span>` + (r.legs.length === 1 ? `<span style="opacity:.85">${esc(r.legs[0].note)}</span>` : "");
     const alt = kind === "arrive" && day.alt ? `<div class="seg" style="margin-top:4px;justify-self:start">${[["fast", "Fastest"], ["value", "Cheapest"]].map((o) => `<button type="button" data-pref="${o[0]}" data-day="${day.idx}" aria-pressed="${(it().days[day.idx].pref || "fast") === o[0]}">${o[1]}</button>`).join("")}</div>` : "";
-    return `<div class="travel ${kind === "depart" ? "depart" : ""}"><div class="t-head"><span class="t-title">${UI.modeIcon(r.legs[0].mode)} ${title}</span><span class="t-meta">${HM.hours(r.mins)} door to door · ≈ ${HM.money(r.pp * 2)}</span></div><div class="legs">${legs}</div>${alt}</div>`;
+    return `<div class="travel ${kind === "depart" || kind === "gwback" ? "depart" : ""}"><div class="t-head"><span class="t-title">${UI.modeIcon(r.legs[0].mode)} ${title}</span><span class="t-meta">${HM.hours(r.mins)} door to door · ≈ ${HM.money(r.pp * 2)}</span></div><div class="legs">${legs}</div>${alt}</div>`;
   };
   /* one compact, drop-able row per meal; what it shows depends on calcTrip's meal `kind` */
   const mact = (label, act, d, k, cls) => `<button class="${cls || "mbtn"}" type="button" data-mact="${act}" data-day="${d.idx}" data-m="${k}">${label}</button>`;
@@ -182,7 +185,7 @@
   }
   function dayHtml(d) {
     const raw = it().days[d.idx], date = HM.dayDate(d.idx);
-    const tMins = (d.travel ? d.travel.mins : 0) + (d.depart ? d.depart.mins : 0), aMins = d.mins - tMins;
+    const tMins = (d.travel ? d.travel.mins : 0) + (d.depart ? d.depart.mins : 0) + (d.gwOut ? d.gwOut.mins : 0) + (d.gwBack ? d.gwBack.mins : 0), aMins = d.mins - tMins;
     const cls = d.mins > CAP ? "max" : d.mins > 480 ? "busy" : "";
     const flag = !d.mins ? "" : d.mins > CAP ? `<span class="flag max">Too packed</span>` : d.mins > 480 ? `<span class="flag busy">Full day</span>` : `<span class="flag ok">${tMins >= 180 ? "Travel day" : "Relaxed"}</span>`;
     const blocks = d.items.map((x) => x.t === "a"
@@ -199,9 +202,9 @@
       <select data-island="${d.idx}" aria-label="Island for day ${d.idx + 1}"><option value="">Choose an island…</option>${isl}</select>
       <div class="meter ${cls}" role="img" aria-label="${HM.hours(d.mins)} planned" title="Time planned: activities and travel. Meals are not counted."><i class="tr" style="width:${Math.min(100, (tMins / CAP) * 100)}%"></i><i class="ac" style="width:${Math.min(100 - Math.min(100, (tMins / CAP) * 100), (aMins / CAP) * 100)}%"></i></div>
       <div class="meter-cap"><span>${d.mins ? HM.hours(d.mins) + " planned" : "Open day"}${tMins ? ` (${HM.hours(tMins)} travel)` : ""}</span>${flag}</div></div>
-      ${travelHtml(d.travel, "arrive", d)}${stay}${meals}
+      ${travelHtml(d.gwOut, "gwout", d)}${travelHtml(d.travel, "arrive", d)}${stay}${meals}
       <div class="blocks">${blocks || `<div class="hint">${raw.island ? "Drag activities here" : "Drag an activity here to start the day"}</div>`}</div>
-      ${travelHtml(d.depart, "depart", d)}
+      ${travelHtml(d.depart, "depart", d)}${travelHtml(d.gwBack, "gwback", d)}
       <div class="day-foot"><span class="f-l"><span>Day total</span>${d.island ? `<small>meals ${d.costs.meals ? "≈ " + HM.money(d.costs.meals) : "$0"}${extras ? ` · extras ${HM.money(extras)}` : ""}</small>` : ""}</span><b>${HM.money(d.cost)}</b></div></article>`;
   }
   function render() {
