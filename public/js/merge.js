@@ -1,5 +1,7 @@
 /* Tiare & Tide — conflict-free merge of two copies of the shared trip state.
-   Used by BOTH the browser (js/sync.js) and the Vercel function (api/state.js), so it must stay dependency-free.
+   Used by the browser (js/sync.js) so it must stay dependency-free (plain script, no bundler).
+   The server side (src/app/api/state/route.ts) uses the TypeScript twin of this file, src/lib/merge.ts —
+   the two must stay logically identical; if you change the rules here, change them there too.
 
    State shape (v3):
      ratings: { "a:moorea/…": "love"|"like"|"dislike" }     rT: { key: timestamp of last change (kept for cleared ratings too) }

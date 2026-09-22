@@ -1,0 +1,23 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// There's no per-user data model here — the whole trip (ratings + itinerary)
+// is one shared JSON document, edited by whoever knows the trip code. See
+// src/lib/merge.ts for the shape of `data` and how two concurrent edits are
+// combined. This is a singleton table: exactly one row, id = 1.
+model TripState {
+  id        Int      @id @default(1)
+  data      Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

@@ -1,4 +1,4 @@
-/* Tiare & Tide — keeps ratings + itinerary in sync across devices via /api/state (Vercel function + Redis).
+/* Tiare & Tide — keeps ratings + itinerary in sync across devices via /api/state (Next.js route + Postgres).
    * The browser keeps working offline / when opened from disk: localStorage is always the local cache.
    * Everyone who enters the same trip code shares one itinerary. Changes are merged item-by-item (js/merge.js). */
 (function () {
@@ -82,7 +82,7 @@
     let dlg = document.getElementById("sync-dlg");
     if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "sync-dlg"; document.body.appendChild(dlg); }
     const intro = !online ? "Sync only works on the hosted site (Vercel). This page is running from a file, so everything is saved in this browser only."
-      : Y.status === "notconfigured" ? (Y.message || "The server isn't configured yet. See the README: connect Upstash Redis and set TRIP_CODE in Vercel, then redeploy.")
+      : Y.status === "notconfigured" ? (Y.message || "The server isn't configured yet. See the README: connect a Postgres database and set TRIP_CODE in Vercel, then redeploy.")
       : "Enter the shared trip code (the TRIP_CODE set in Vercel). Use the same code on every device and you'll share one itinerary, live.";
     dlg.innerHTML = `<form method="dialog"><h3>Sync across devices</h3><p class="sub">${HM.esc(intro)}</p>
       ${online ? `<label class="fld">Trip code<input id="sync-code" type="password" autocomplete="off" value="${HM.esc(code)}" placeholder="shared passphrase"></label>` : ""}
