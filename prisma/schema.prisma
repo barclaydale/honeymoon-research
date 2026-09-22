@@ -5,10 +5,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Var names match what Vercel's Postgres (Neon) storage integration sets when you
+// click "Connect to Project" on the database: DATABASE_URL (pooled, via pgbouncer)
+// and DATABASE_URL_UNPOOLED (direct connection, needed for migrations).
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // There's no per-user data model here — the whole trip (ratings + itinerary)

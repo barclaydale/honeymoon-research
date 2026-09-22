@@ -35,7 +35,10 @@ two of you: a shared trip-code passphrase gates the API instead of accounts.
    select the repo. Framework preset auto-detects as Next.js — leave the defaults.
 2. **Add a database.** Vercel dashboard → your project → **Storage** → **Create Database** →
    choose **Postgres** (Neon, via the Vercel Marketplace) → free plan is plenty → **Connect to
-   Project**. This sets `DATABASE_URL` and `DIRECT_URL` automatically for all environments.
+   Project**. This sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED` automatically for all
+   environments. **Note:** creating the database alone isn't enough — click **Connect to Project**
+   on the database itself (Storage → your database) so it actually attaches to this Vercel
+   project and injects those env vars.
 3. **Pick a shared trip code.** Project → **Settings → Environment Variables** → add `TRIP_CODE`
    with any passphrase you both know (Production, Preview and Development). Anyone with the site
    link *and* this code can read and edit the trip; everyone else gets a 401.
@@ -62,7 +65,7 @@ How it behaves:
 ```
 npm install
 vercel link          # once, to connect this checkout to the Vercel project
-vercel env pull .env  # pulls the real DATABASE_URL/DIRECT_URL/TRIP_CODE from Vercel
+vercel env pull .env  # pulls the real DATABASE_URL/DATABASE_URL_UNPOOLED/TRIP_CODE from Vercel
 npm run dev            # http://localhost:3000
 ```
 
