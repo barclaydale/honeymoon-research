@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map · Tiare &amp; Tide</title>
+<meta name="description" content="Every activity, stay and restaurant on a real map, plus an animated day-by-day playback of your itinerary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/map.css">
+</head>
+<body data-page="map">
+<header id="site-header" class="site-header"></header>
+<main class="wrap map-page">
+  <div class="section-head" style="margin-top:28px">
+    <div><p class="eyebrow">Where it all is</p><h2>Map</h2>
+      <p id="map-intro">Every place you've rated or planned, on a real map. Switch to <b>Itinerary story</b> to watch your
+      current draft play out day by day — hopping between activities, going dark at night, then island-hopping to the next
+      stop. (The flight to and from home isn't shown here — just French Polynesia.)</p></div>
+    <div class="seg" id="map-mode" role="tablist"><button type="button" data-mode="explore" role="tab" aria-pressed="true">Explore everything</button><button type="button" data-mode="story" role="tab" aria-pressed="false">Itinerary story</button></div>
+  </div>
+  <div class="map-filters" id="map-filters"></div>
+  <div class="map-wrap">
+    <div class="story-bar no-print" id="story-bar" hidden></div>
+    <div id="leaflet-map"></div>
+    <div class="map-legend no-print" id="map-legend"></div>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+<script src="js/boot.js"></script>
+<script src="js/geo.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="js/map.js"></script>
+</body>
+</html>

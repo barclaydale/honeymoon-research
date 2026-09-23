@@ -1,0 +1,46 @@
+/* Map page: Leaflet map + explore filters + itinerary "story" playback. Loaded after styles.css. */
+
+.map-page .section-head { align-items: flex-start; }
+
+/* ---------- filters (explore mode) ---------- */
+.map-filters { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 4px 0 14px; }
+.map-filters select { border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; font: 600 13px var(--body); background: #fff; color: var(--ink); }
+.map-filters .checks { display: flex; gap: 12px; flex-wrap: wrap; }
+.map-filters .check { font-size: 13px; display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.map-count { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+
+/* ---------- map container ---------- */
+.map-wrap { position: relative; border-radius: var(--r); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--line-2); }
+#leaflet-map { height: 62vh; min-height: 420px; width: 100%; background: #cfe3ea; transition: filter 0.8s; }
+.leaflet-popup-content-wrapper { border-radius: 12px; }
+.map-pop { display: grid; gap: 6px; min-width: 180px; font: 14px/1.4 var(--body); }
+.map-pop b { font: 700 14.5px var(--display); color: var(--ink); }
+.map-pop small { color: var(--ink-2); }
+.map-pop .rate { margin-top: 2px; }
+.map-pop a { font-size: 12.5px; font-weight: 600; }
+.map-legend { position: absolute; left: 10px; bottom: 10px; z-index: 500; background: rgba(255, 255, 255, 0.92); border-radius: 10px; padding: 8px 11px; font-size: 12px; display: flex; gap: 12px; box-shadow: var(--shadow); }
+.map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.map-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* ---------- itinerary story mode ---------- */
+.story-bar { position: absolute; left: 10px; right: 10px; top: 10px; z-index: 500; background: rgba(14, 42, 54, 0.92); color: #fff; border-radius: 14px; padding: 10px 14px; display: grid; gap: 8px; box-shadow: var(--shadow-lg); backdrop-filter: blur(6px); }
+.story-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.story-controls .btn { padding: 6px 12px; font-size: 12.5px; border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #fff; }
+.story-controls .btn:hover { border-color: #fff; color: #fff; background: rgba(255, 255, 255, 0.2); }
+.story-controls select { border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; padding: 6px 9px; font: 600 12.5px var(--body); background: rgba(255, 255, 255, 0.1); color: #fff; }
+.story-controls select option { color: #0e2a36; }
+.story-scrub { width: 100%; accent-color: var(--gold); }
+.story-caption { font-size: 13.5px; min-height: 1.4em; }
+.story-caption b { color: var(--gold); }
+.story-empty { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+/* the moving "you are here" marker, and the map going dark overnight */
+.map-mover { width: 18px; height: 18px; border-radius: 50%; background: var(--coral); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); transition: background 0.8s; }
+.map-mover.night { background: #2a3550; }
+.map-wrap.night #leaflet-map { filter: brightness(0.42) saturate(0.55) hue-rotate(-6deg); }
+
+@media (max-width: 720px) {
+  #leaflet-map { height: 56vh; }
+  .story-bar { position: static; margin-bottom: 10px; }
+  .map-count { margin-left: 0; }
+}

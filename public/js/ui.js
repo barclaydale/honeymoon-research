@@ -136,7 +136,7 @@
     const el = document.getElementById("site-header"); if (!el) return;
     const link = (href, key, label, extra) => `<a href="${href}" ${active === key ? 'aria-current="page"' : ""}>${label}${extra || ""}</a>`;
     el.innerHTML = `<div class="wrap bar"><a class="brand" href="index.html" aria-label="Tiare and Tide home"><svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#0c6e73"/><circle cx="26" cy="14" r="5" fill="#f2b84b"/><path d="M4 26q4-4 8 0t8 0 8 0 8 0v10H4z" fill="#f7ecd8"/><path d="M4 22q4-4 8 0t8 0 8 0 8 0" stroke="#7fd6cf" stroke-width="2" fill="none"/></svg><span>Tiare <em>&amp;</em> Tide</span></a>
-      <nav aria-label="Main">${link("index.html", "home", "Islands")}${link("shortlist.html", "shortlist", "Shortlist", ' <span class="pill" id="nav-picks" hidden></span>')}${link("itinerary.html", "itinerary", "Itinerary", ' <span class="pill money" id="nav-total" hidden></span>')}<button type="button" id="sync-pill" class="sync-pill" data-state="local" hidden></button></nav></div>`;
+      <nav aria-label="Main">${link("index.html", "home", "Islands")}${link("shortlist.html", "shortlist", "Shortlist", ' <span class="pill" id="nav-picks" hidden></span>')}${link("itinerary.html", "itinerary", "Itinerary", ' <span class="pill money" id="nav-total" hidden></span>')}${link("map.html", "map", "Map")}<button type="button" id="sync-pill" class="sync-pill" data-state="local" hidden></button></nav></div>`;
     UI.refreshNav();
     if (HM.sync) HM.sync.render();
   };

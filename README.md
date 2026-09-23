@@ -13,6 +13,7 @@ two of you: a shared trip-code passphrase gates the API instead of accounts.
 | `island.html?i=moorea` | Overview, then **Activities / Places to stay / Restaurants**, with filters, love / like / pass and "add to itinerary" |
 | `shortlist.html` | Everything you've loved or liked, grouped by island |
 | `itinerary.html` | Drag-and-drop day planner: travel blocks, meals, time meters, running cost. Supports multiple named **drafts** (e.g. "Grace's honeymoon" vs "Daniel's honeymoon") that you can switch between, duplicate and compare, then combine into a joint plan |
+| `map.html` | A real interactive map (Leaflet, free satellite/street tiles) of every activity, stay and restaurant. **Explore everything** shows it all, filterable and clusterable; **Itinerary story** animates the active draft day by day — hopping between stops, going dark at night, then island-hopping (flight/ferry/boat) to the next island. The international flight home isn't shown; it's just French Polynesia |
 
 ## How it's put together
 
@@ -37,6 +38,15 @@ two of you: a shared trip-code passphrase gates the API instead of accounts.
   in `localStorage`, not synced — so you and your partner can each have a different draft open on your
   own screens at the same time. See the header comment in `src/lib/merge.ts` / `public/js/merge.js`
   for the exact shape and rules.
+- **Map** (`public/js/map.js`, `public/js/geo.js`): Leaflet loaded from a CDN (no API key, no build
+  step — same "plain script tag" philosophy as the rest of the frontend), on free Esri World Imagery
+  (satellite) and OpenStreetMap tile layers. Nothing in the data carries real coordinates, so
+  `js/geo.js` places each item by matching its name/description/location text against a short list of
+  real named villages, bays, points and passes per island (also real, hand-placed), then a small
+  deterministic jitter — good for "which part of the island is this on," not a substitute for a
+  resort's exact address. The itinerary story mode replays `HM.calcTrip()`'s own day-by-day output
+  (the exact same travel legs, meal resolution and costs the itinerary page computes) as an animated
+  walk, so it can never disagree with what the itinerary actually shows.
 
 ## Deploy on Vercel (one-time setup)
 
